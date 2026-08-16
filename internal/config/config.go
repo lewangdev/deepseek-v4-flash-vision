@@ -66,13 +66,18 @@ func Default() Config {
 		},
 		Router: Router{
 			Primary:    "deepseek-v4-flash",
-			Vision:     "qwen3.7-max",
+			Vision:     "mimo-v2.5",
 			AutoVision: true,
 			Overrides: map[string]ModelEndpoint{
 				"deepseek-v4-flash": {ID: "deepseek-v4-flash", Endpoint: EndpointChat},
-				"qwen3.7-max":       {ID: "qwen3.7-max", Endpoint: EndpointMessages},
-				"gpt-5.6-luna":      {ID: "gpt-5.6-luna", Endpoint: EndpointResponses},
-				"grok-4.5":          {ID: "grok-4.5", Endpoint: EndpointResponses},
+				// mimo-v2.5 is the verified image-capable default: it shares the
+				// chat/completions wire format with the primary, so default text
+				// and vision traffic never crosses families. The other entries
+				// remain reachable when a client names them explicitly.
+				"mimo-v2.5":    {ID: "mimo-v2.5", Endpoint: EndpointChat},
+				"qwen3.7-max":  {ID: "qwen3.7-max", Endpoint: EndpointMessages},
+				"gpt-5.6-luna": {ID: "gpt-5.6-luna", Endpoint: EndpointResponses},
+				"grok-4.5":     {ID: "grok-4.5", Endpoint: EndpointResponses},
 			},
 		},
 	}

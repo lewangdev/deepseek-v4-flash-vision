@@ -2,7 +2,7 @@
 // DeepSeek V4 Flash model served by the OpenCode Go subscription. It exposes
 // OpenAI Chat Completions, OpenAI Responses and Anthropic Messages endpoints,
 // routing text traffic to DeepSeek V4 Flash and image traffic to a configurable
-// vision model (default qwen3.7-max). All configuration lives in one YAML file.
+// vision model (default mimo-v2.5). All configuration lives in one YAML file.
 package main
 
 import (

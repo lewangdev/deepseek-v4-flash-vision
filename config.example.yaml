@@ -24,8 +24,11 @@ opencode:
 router:
   # 纯文本请求默认使用的模型（OpenCode Go 上最便宜的文本模型）。
   primary: "deepseek-v4-flash"
-  # 检测到图片时使用的视觉模型。
-  vision: "qwen3.7-max"
+  # 检测到图片时使用的视觉模型。默认 mimo-v2.5：实测能吃图且能描述图片，
+  # 并与 primary 同属 chat/completions 接口，默认路径全程同族最稳。
+  # 实测可用的其它视觉模型：qwen3.8-max / minimax-m3（messages 接口）、
+  # gpt-5.6-luna（responses 接口）。qwen3.7-max 实测**不支持**图片。
+  vision: "mimo-v2.5"
   # true: 请求带图片自动路由到 vision；false: 一律走 primary。
   auto_vision: true
   # 显式客户端模型名 -> 上游模型 + 端点。
@@ -35,6 +38,7 @@ router:
   #   responses        —— Grok 4.5 / GPT 5.6 Luna
   overrides:
     "deepseek-v4-flash": { id: "deepseek-v4-flash", endpoint: "chat/completions" }
+    "mimo-v2.5":         { id: "mimo-v2.5",         endpoint: "chat/completions" }
     "qwen3.7-max":       { id: "qwen3.7-max",       endpoint: "messages" }
     "gpt-5.6-luna":      { id: "gpt-5.6-luna",      endpoint: "responses" }
     "grok-4.5":          { id: "grok-4.5",          endpoint: "responses" }

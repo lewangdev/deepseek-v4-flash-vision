@@ -49,11 +49,11 @@ func (f family) endpoint() string {
 
 // Server holds dependencies shared by all handlers.
 type Server struct {
-	cfg  config.Config
-	rt   *router.Router
-	up   *upstream.Client
-	log  *slog.Logger
-	now  func() time.Time // overridable for tests
+	cfg config.Config
+	rt  *router.Router
+	up  *upstream.Client
+	log *slog.Logger
+	now func() time.Time // overridable for tests
 }
 
 func New(cfg config.Config) *Server {

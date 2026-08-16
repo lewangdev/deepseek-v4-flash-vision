@@ -58,16 +58,16 @@ func TestAnthropicBuildDefaultsAndMerges(t *testing.T) {
 		t.Fatalf("build: %v", err)
 	}
 	var decoded struct {
-		Model      string `json:"model"`
-		MaxTokens  int    `json:"max_tokens"`
-		System     string `json:"system"`
-		Messages   []struct {
+		Model     string `json:"model"`
+		MaxTokens int    `json:"max_tokens"`
+		System    string `json:"system"`
+		Messages  []struct {
 			Role    string `json:"role"`
 			Content []struct {
-				Type       string `json:"type"`
-				Text       string `json:"text"`
-				ToolUseID  string `json:"tool_use_id,omitempty"`
-				Input      any    `json:"input,omitempty"`
+				Type      string `json:"type"`
+				Text      string `json:"text"`
+				ToolUseID string `json:"tool_use_id,omitempty"`
+				Input     any    `json:"input,omitempty"`
 			} `json:"content"`
 		} `json:"messages"`
 		Tools []struct {

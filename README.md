@@ -2,7 +2,7 @@
 
 给 OpenCode Go 订阅里的 **DeepSeek V4 Flash** 加上视觉（图片识别）能力的本地网关。
 
-DeepSeek V4 Flash 是 OpenCode Go 订阅里最便宜的文本模型，但它不认图片。本网关在本地开一个多格式 API，把文本流量交给 DeepSeek V4 Flash，一旦检测到图片就自动把整条请求路由到视觉模型（默认 Qwen3.7-Max）。工具（Claude Code、Cursor、各种 agent SDK）只要把 BASE_URL 指到本网关即可即插即用，无需改代码。
+DeepSeek V4 Flash 是 OpenCode Go 订阅里最便宜的文本模型，但它不认图片。本网关在本地开一个多格式 API，把文本流量交给 DeepSeek V4 Flash，一旦检测到图片就自动把整条请求路由到视觉模型（默认 mimo-v2.5）。工具（Claude Code、Cursor、各种 agent SDK）只要把 BASE_URL 指到本网关即可即插即用，无需改代码。
 
 ```
 ┌──────────────┐   /v1/chat/completions (OpenAI Chat)
@@ -14,7 +14,7 @@ DeepSeek V4 Flash 是 OpenCode Go 订阅里最便宜的文本模型，但它不�
    三种响应格式 ◄─ 流式/非流式 转换 ←←（文本增量、工具调用汇总） │              │
                                                             └──────┬───────┘
                                       ┌─────────────────────────────┼──────────────────┐
-                                      │ 有图片 ──► qwen3.7-max  ──► /messages   (Anthropic)│
+                                      │ 有图片 ──► mimo-v2.5  ──► /chat/completions       │
               opencode.ai/zen/go/v1   │ 无图片 ──► deepseek-v4-flash ──► /chat/completions│
               (OpenCode Go 订阅)      │ overrides ──► grok-4.5 / gpt-5.6-luna ──► /responses│
                                       └───────────────────────────────────────────────────┘
@@ -25,7 +25,7 @@ DeepSeek V4 Flash 是 OpenCode Go 订阅里最便宜的文本模型，但它不�
 ## 功能
 
 - **三个对外接口**：OpenAI `Chat Completions`、OpenAI `Responses`、Anthropic `Messages`。
-- **自动路由**：请求里出现图片 → 视觉模型（默认 `qwen3.7-max`）；否则 → 文本模型 `deepseek-v4-flash`。`router.auto_vision: false` 可关闭。
+- **自动路由**：请求里出现图片 → 视觉模型（默认 `mimo-v2.5`）；否则 → 文本模型 `deepseek-v4-flash`。`router.auto_vision: false` 可关闭。
 - **多模型**：客户端显式指定的已知模型（`gpt-5.6-luna`、`grok-4.5` 等）按其对应的上游端点转发，未知模型名自动回落。
 - **单文件配置**：`config.yaml`，无 Web 页面。
 - **流式（SSE）**：跨接口转换时文本增量实时转发；工具调用的参数在流结束时作为完整块一次性下发（上游与下游同接口族的流式工具增量完全保留）。
@@ -63,10 +63,11 @@ opencode:
 
 router:
   primary: "deepseek-v4-flash"   # 文本默认
-  vision: "qwen3.7-max"          # 检测到图片时使用
+  vision: "mimo-v2.5"           # 检测到图片时使用（实测支持）
   auto_vision: true
   overrides:                     # 显式客户端模型名 -> 上游模型 + 端点
     "deepseek-v4-flash": { id: "deepseek-v4-flash", endpoint: "chat/completions" }
+    "mimo-v2.5":         { id: "mimo-v2.5",         endpoint: "chat/completions" }
     "qwen3.7-max":       { id: "qwen3.7-max",       endpoint: "messages" }
     "gpt-5.6-luna":      { id: "gpt-5.6-luna",      endpoint: "responses" }
     "grok-4.5":          { id: "grok-4.5",          endpoint: "responses" }
@@ -96,14 +97,29 @@ export OPENAI_API_KEY="anything"
 
 | 请求特征 | 模型 | 上游端点 |
 |---|---|---|
-| 含图片 + `auto_vision` | `router.vision`（默认 `qwen3.7-max`） | `messages` |
+| 含图片 + `auto_vision` | `router.vision`（默认 `mimo-v2.5`） | 该模型的 `overrides` 端点（默认 `chat/completions`） |
 | 纯文本 | `router.primary`（默认 `deepseek-v4-flash`） | `chat/completions` |
 | 显式指定已知非主/视觉模型（如 `gpt-5.6-luna`） | 该模型 | `overrides` 里配的端点 |
 | 未知模型名 | 自动回落（同上两行） | — |
 
 ## 视觉模型的选择与边界
 
-默认视觉模型是 **`qwen3.7-max`**（OpenCode 文档里未逐模型标记能力，本结论来自 Qwen 家族为多模态模型的已知信息）。如果它在你的订阅里实际不支持图片，改 `router.vision` 即可。备选候选：**GLM-5.x、GPT-5.6 Luna、Grok 4.5**（`responses` 面也支持图片），以及名字带多模态暗示的 **MiMo v2 Omni**。DeepSeek V4 Flash 本身只走 `chat/completions`，不接图片。
+默认视觉模型是 **`mimo-v2.5`**。它的能力**实测验证过**：能接收 base64 图片并正确描述内容（"这张图片是纯红色的"）。它还与默认文本模型 DeepSeek V4 Flash **同属 `chat/completions` 接口**——默认路径全程同族，SSE 天然透传，最稳最省。
+
+订阅里实测过的候选（各有取舍，均可改 `router.vision` + 加对应 override 切换）：
+
+| 模型 | 接口 | 图片输入 | 实测 |
+|---|---|---|---|
+| **mimo-v2.5** ✅ 默认 | chat/completions | ✅ | 能正确描述图片 |
+| qwen3.8-max | messages | ✅ | 能正确描述图片 |
+| minimax-m3 | messages | ✅ | 能正确描述图片 |
+| gpt-5.6-luna | responses | ✅ | 接受图片输入 |
+| glm-5.2 | chat/completions | ⚠️ | 接受但不解析内容 |
+| qwen3.7-max | messages | ❌ | 返回 400（纯文本） |
+| grok-4.5 / mimo-v2-pro | — | ❌ | 拒绝图片 |
+| mimo-v2-omni | — | — | 已废弃，官方提示迁移 mimo-v2.5 |
+
+选 `messages` / `responses` 接口的视觉模型时，客户端是 chat 风格的话会走跨族转换（工具参数块在流结束时一次性下发）；默认的 mimo-v2.5 没有这个开销。DeepSeek V4 Flash 本身只走 `chat/completions`，不接图片。
 
 ## 验证
 
@@ -118,7 +134,7 @@ curl http://127.0.0.1:8787/v1/models
 
 ## 诚实的边界
 
-- `/models` 元数据端点没有 `capability_*` 标记，视觉能力来自模型家族已知信息；若 Qwen3.7-Max 不支持图片，改配置即可。
+- `/models` 元数据端点没有 `capability_*` 标记，本 README 中每款模型的图片能力都来自**真实订阅实测**（上文表格）；订阅模型列表变化时以 `curl /models` 为准。
 - 跨族流式只保证**文本增量实时**；工具参数块在流结束时一次性下发（同族流式工具增量完全保留）。
 - v1 不做本地缓存 / 持久化 / 多用户鉴权；上游真实鉴权头以 OpenCode 实际要求为准，`opencode.headers` 可覆盖。
 

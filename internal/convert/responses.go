@@ -265,7 +265,7 @@ func ResponsesResponseToIR(raw []byte) (*ir.Response, error) {
 		Model  string `json:"model"`
 		Status string `json:"status"`
 		Output []struct {
-			Type      string `json:"type"`
+			Type      string             `json:"type"`
 			Content   []responsesContent `json:"content"`
 			CallID    string             `json:"call_id"`
 			Name      string             `json:"name"`

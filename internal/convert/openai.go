@@ -296,9 +296,9 @@ func OpenAIResponseFromIR(resp *ir.Response, model string) ([]byte, error) {
 	}
 	if resp.Usage != nil {
 		body["usage"] = map[string]any{
-			"prompt_tokens": resp.Usage.PromptTokens,
+			"prompt_tokens":     resp.Usage.PromptTokens,
 			"completion_tokens": resp.Usage.CompletionTokens,
-			"total_tokens": resp.Usage.TotalTokens,
+			"total_tokens":      resp.Usage.TotalTokens,
 		}
 	}
 	return json.Marshal(body)

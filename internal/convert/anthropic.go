@@ -229,7 +229,7 @@ func anthropicMessagesFromIR(msgs []ir.Message) []any {
 			case ir.ImagePart:
 				if v.URL != "" {
 					content = append(content, map[string]any{
-						"type": "image",
+						"type":   "image",
 						"source": map[string]any{"type": "url", "url": v.URL},
 					})
 				} else {
@@ -305,8 +305,8 @@ func anthropicToolsFromOpenAI(tools []json.RawMessage) []any {
 			schema = json.RawMessage(`{"type":"object"}`)
 		}
 		out = append(out, map[string]any{
-			"name":        def.Function.Name,
-			"description": def.Function.Description,
+			"name":         def.Function.Name,
+			"description":  def.Function.Description,
 			"input_schema": schema,
 		})
 	}
@@ -372,14 +372,14 @@ func AnthropicResponseFromIR(resp *ir.Response, model string) ([]byte, error) {
 		content = append(content, map[string]any{"type": "tool_use", "id": tc.ID, "name": tc.Name, "input": tc.Input})
 	}
 	body := map[string]any{
-		"id":              newID("msg"),
-		"type":            "message",
-		"role":            "assistant",
-		"model":           model,
-		"content":         content,
-		"stop_reason":     resp.FinishReason,
-		"stop_sequence":   nil,
-		"usage":           map[string]any{"input_tokens": 0, "output_tokens": 0},
+		"id":            newID("msg"),
+		"type":          "message",
+		"role":          "assistant",
+		"model":         model,
+		"content":       content,
+		"stop_reason":   resp.FinishReason,
+		"stop_sequence": nil,
+		"usage":         map[string]any{"input_tokens": 0, "output_tokens": 0},
 	}
 	if resp.FinishReason == "" {
 		body["stop_reason"] = "end_turn"

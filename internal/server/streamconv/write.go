@@ -103,7 +103,7 @@ func (m *messagesWriter) start() error {
 	}
 	m.started = true
 	return writeSSE(m.w, "message_start", map[string]any{
-		"type":    "message_start",
+		"type": "message_start",
 		"message": map[string]any{
 			"id": m.id, "type": "message", "role": "assistant", "model": m.model,
 			"content": []any{}, "stop_reason": nil, "stop_sequence": nil,
@@ -123,8 +123,8 @@ func (m *messagesWriter) startText() error {
 	m.nextBlockIdx++
 	m.textOpen = true
 	return writeSSE(m.w, "content_block_start", map[string]any{
-		"type":         "content_block_start",
-		"index":        m.textBlockIdx,
+		"type":          "content_block_start",
+		"index":         m.textBlockIdx,
 		"content_block": map[string]any{"type": "text", "text": ""},
 	})
 }
@@ -263,7 +263,7 @@ func (r *responsesWriter) openMessage() error {
 	r.assistantID = "msg_" + randIDSuffix()
 	r.textOpen = true
 	return writeSSE(r.w, "response.output_item.added", map[string]any{
-		"type": "response.output_item.added",
+		"type":         "response.output_item.added",
 		"output_index": 0,
 		"item": map[string]any{
 			"id": r.assistantID, "type": "message", "status": "in_progress", "role": "assistant",
@@ -282,7 +282,7 @@ func (r *responsesWriter) closeMessage() error {
 		"content": []any{map[string]any{"type": "output_text", "text": r.accText, "annotations": []any{}}},
 	})
 	return writeSSE(r.w, "response.output_item.done", map[string]any{
-		"type": "response.output_item.done",
+		"type":         "response.output_item.done",
 		"output_index": 0,
 		"item": map[string]any{
 			"id": r.assistantID, "type": "message", "status": "completed", "role": "assistant",
@@ -297,11 +297,11 @@ func (r *responsesWriter) Text(chunk string) error {
 	}
 	r.accText += chunk
 	return writeSSE(r.w, "response.output_text.delta", map[string]any{
-		"type": "response.output_text.delta",
-		"item_id": r.assistantID,
-		"output_index": 0,
+		"type":          "response.output_text.delta",
+		"item_id":       r.assistantID,
+		"output_index":  0,
 		"content_index": 0,
-		"delta": chunk,
+		"delta":         chunk,
 	})
 }
 

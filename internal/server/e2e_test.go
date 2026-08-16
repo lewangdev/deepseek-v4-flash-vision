@@ -13,14 +13,18 @@ import (
 	"github.com/lewang/deepseek-v4-flash-vision/internal/config"
 )
 
-// newTestGateway wires a minimal config against a fake upstream, returning the
-// gateway URL and the fake upstream server.
-func newTestGateway(t *testing.T, up http.HandlerFunc) (*httptest.Server, *httptest.Server) {
+// newTestGateway wires a config against a fake upstream, returning the gateway
+// URL and the fake upstream server. mutate lets tests pin e.g. a different
+// vision model/endpoint before the gateway is built.
+func newTestGateway(t *testing.T, up http.HandlerFunc, mutate func(*config.Config)) (*httptest.Server, *httptest.Server) {
 	t.Helper()
 	upSrv := httptest.NewServer(up)
 	cfg := config.Default()
 	cfg.OpenCode.BaseURL = upSrv.URL
 	cfg.OpenCode.APIKey = "sk-test"
+	if mutate != nil {
+		mutate(&cfg)
+	}
 	gw := httptest.NewServer(New(cfg).Mux())
 	t.Cleanup(func() {
 		upSrv.Close()
@@ -55,7 +59,7 @@ func TestE2E_ChatTextPassthrough(t *testing.T) {
 		got = b
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(`{"id":"x","object":"chat.completion","model":"deepseek-v4-flash","choices":[{"index":0,"message":{"role":"assistant","content":"hello-chat"},"finish_reason":"stop"}]}`))
-	})
+	}, nil)
 
 	resp := post(t, gw.URL+"/v1/chat/completions",
 		`{"model":"deepseek-v4-flash","messages":[{"role":"user","content":"hi"}]}`)
@@ -72,6 +76,8 @@ func TestE2E_ChatTextPassthrough(t *testing.T) {
 }
 
 func TestE2E_ChatImageRoutesToVision(t *testing.T) {
+	// Pin a messages-family vision model so this test keeps covering the
+	// cross-family path (chat client -> Anthropic /messages upstream).
 	var gotMsgBody []byte
 	png := base64.StdEncoding.EncodeToString([]byte("fake"))
 	gw, _ := newTestGateway(t, func(w http.ResponseWriter, r *http.Request) {
@@ -82,7 +88,7 @@ func TestE2E_ChatImageRoutesToVision(t *testing.T) {
 		gotMsgBody = b
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(`{"id":"msg_1","type":"message","role":"assistant","model":"qwen3.7-max","content":[{"type":"text","text":"hello-anthropic"}],"stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1}}`))
-	})
+	}, func(c *config.Config) { c.Router.Vision = "qwen3.7-max" })
 
 	resp := post(t, gw.URL+"/v1/chat/completions",
 		`{"model":"deepseek-v4-flash","messages":[{"role":"user","content":[
@@ -101,7 +107,7 @@ func TestE2E_ChatImageRoutesToVision(t *testing.T) {
 		Messages  []struct {
 			Role    string `json:"role"`
 			Content []struct {
-				Type   string `json:"type"`
+				Type   string         `json:"type"`
 				Source map[string]any `json:"source,omitempty"`
 			} `json:"content"`
 		} `json:"messages"`
@@ -134,6 +140,41 @@ func TestE2E_ChatImageRoutesToVision(t *testing.T) {
 	}
 }
 
+func TestE2E_ChatImageDefaultRoutesSameFamily(t *testing.T) {
+	// Default config: image traffic routes to the vision model (mimo-v2.5),
+	// which — like the primary — lives on the chat/completions endpoint. The
+	// whole round trip stays in one wire family.
+	var gotChatBody []byte
+	gw, _ := newTestGateway(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/chat/completions" {
+			t.Errorf("expected upstream /chat/completions, got %s", r.URL.Path)
+		}
+		b, _ := io.ReadAll(r.Body)
+		gotChatBody = b
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"id":"x","object":"chat.completion","model":"mimo-v2.5","choices":[{"index":0,"message":{"role":"assistant","content":"hello-vision"},"finish_reason":"stop"}]}`))
+	}, nil)
+
+	resp := post(t, gw.URL+"/v1/chat/completions",
+		`{"model":"deepseek-v4-flash","messages":[{"role":"user","content":[
+			{"type":"text","text":"what"},
+			{"type":"image_url","image_url":{"url":"data:image/png;base64,AAAA"}}
+		]}]}`)
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d body=%s", resp.StatusCode, readBody(t, resp))
+	}
+	// Upstream got the vision model on the chat endpoint, keeping the image.
+	if !bytes.Contains(gotChatBody, []byte(`"mimo-v2.5"`)) {
+		t.Fatalf("upstream body missing vision model: %s", gotChatBody)
+	}
+	if !bytes.Contains(gotChatBody, []byte("AAAA")) {
+		t.Fatalf("upstream body missing image data: %s", gotChatBody)
+	}
+	if !strings.Contains(readBody(t, resp), "hello-vision") {
+		t.Fatalf("response missing text: %s", readBody(t, resp))
+	}
+}
+
 func TestE2E_MessagesClientTextToDeepSeek(t *testing.T) {
 	var gotChatBody []byte
 	gw, _ := newTestGateway(t, func(w http.ResponseWriter, r *http.Request) {
@@ -144,7 +185,7 @@ func TestE2E_MessagesClientTextToDeepSeek(t *testing.T) {
 		gotChatBody = b
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(`{"id":"x","object":"chat.completion","model":"deepseek-v4-flash","choices":[{"index":0,"message":{"role":"assistant","content":"hello-deepseek"},"finish_reason":"stop"}],"usage":{"prompt_tokens":2,"completion_tokens":1,"total_tokens":3}}`))
-	})
+	}, nil)
 
 	// An Anthropic-style client pointing at an unknown model name falls back to
 	// the text primary, which is converted to the OpenAI chat wire format.
@@ -178,6 +219,8 @@ func TestE2E_MessagesClientTextToDeepSeek(t *testing.T) {
 }
 
 func TestE2E_StreamChatToVision(t *testing.T) {
+	// Cross-family streaming: chat client + image -> messages upstream. A
+	// messages-family vision model is pinned to exercise the bridge.
 	gw, _ := newTestGateway(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/messages" {
 			t.Errorf("expected /messages, got %s", r.URL.Path)
@@ -193,7 +236,7 @@ event: message_stop
 data: {"type":"message_stop"}
 
 `)
-	})
+	}, func(c *config.Config) { c.Router.Vision = "qwen3.7-max" })
 
 	resp := post(t, gw.URL+"/v1/chat/completions",
 		`{"model":"deepseek-v4-flash","stream":true,"messages":[{"role":"user","content":[

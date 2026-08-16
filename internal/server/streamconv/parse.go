@@ -119,7 +119,7 @@ func ParseMessages(r io.Reader, fn func(Delta)) error {
 			}
 		case "content_block_start":
 			var p struct {
-				Index int `json:"index"`
+				Index        int `json:"index"`
 				ContentBlock struct {
 					Type string `json:"type"`
 					ID   string `json:"id"`

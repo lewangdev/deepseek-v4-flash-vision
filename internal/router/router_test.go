@@ -31,7 +31,7 @@ func TestResolveTextUsesPrimary(t *testing.T) {
 func TestResolveImageUsesVision(t *testing.T) {
 	rt := router.New(config.Default())
 	res := rt.Resolve(imageReq())
-	if res.Model != "qwen3.7-max" || res.Endpoint != config.EndpointMessages {
+	if res.Model != "mimo-v2.5" || res.Endpoint != config.EndpointChat {
 		t.Fatalf("got %+v", res)
 	}
 }
@@ -44,7 +44,7 @@ func TestResolvePrimaryNameWithImageGoesVision(t *testing.T) {
 	req := imageReq()
 	req.ClientModel = "deepseek-v4-flash"
 	res := rt.Resolve(req)
-	if res.Model != "qwen3.7-max" || res.Endpoint != config.EndpointMessages {
+	if res.Model != "mimo-v2.5" || res.Endpoint != config.EndpointChat {
 		t.Fatalf("got %+v", res)
 	}
 }
@@ -85,7 +85,7 @@ func TestResolveUnknownClientModelFallsBackToAuto(t *testing.T) {
 		t.Fatalf("got %+v", res)
 	}
 	// Unknown name + image -> vision.
-	if res := rt.Resolve(&ir.Request{ClientModel: "mystery", Messages: imageReq().Messages}); res.Model != "qwen3.7-max" {
+	if res := rt.Resolve(&ir.Request{ClientModel: "mystery", Messages: imageReq().Messages}); res.Model != "mimo-v2.5" {
 		t.Fatalf("got %+v", res)
 	}
 }
@@ -108,7 +108,7 @@ func TestKnownModelsDedupes(t *testing.T) {
 		}
 		seen[m] = true
 	}
-	if !seen["deepseek-v4-flash"] || !seen["qwen3.7-max"] || !seen["gpt-5.6-luna"] {
+	if !seen["deepseek-v4-flash"] || !seen["mimo-v2.5"] || !seen["qwen3.7-max"] || !seen["gpt-5.6-luna"] {
 		t.Fatalf("missing expected models: %v", rt.KnownModels())
 	}
 }
