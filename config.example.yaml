@@ -1,0 +1,40 @@
+# DeepSeek V4 Flash 视觉网关 — 唯一配置文件
+# Copy to config.yaml and fill in your OpenCode Go API key.
+
+version: 1
+
+server:
+  # 网关监听地址。默认只监听本机；工具把 BASE_URL 指到这里。
+  address: "127.0.0.1:8787"
+  # 非空则下游必须携带该 key（OpenAI 面用 Authorization: Bearer，
+  # Anthropic /v1/messages 面用 x-api-key）。留空 = 不做校验。
+  api_key: ""
+  # 上游走 Anthropic /messages 端点且客户端没带 max_tokens 时的兜底值。
+  default_max_tokens: 2048
+
+opencode:
+  # OpenCode Go 订阅端点前缀。
+  base_url: "https://opencode.ai/zen/go/v1"
+  # 在 https://opencode.ai/auth 登录订阅后复制。
+  api_key: ""
+  # 可选的额外请求头，追加到所有上游请求（如需要覆盖鉴权时用）。
+  # headers:
+  #   Authorization: "Bearer ..."
+
+router:
+  # 纯文本请求默认使用的模型（OpenCode Go 上最便宜的文本模型）。
+  primary: "deepseek-v4-flash"
+  # 检测到图片时使用的视觉模型。
+  vision: "qwen3.7-max"
+  # true: 请求带图片自动路由到 vision；false: 一律走 primary。
+  auto_vision: true
+  # 显式客户端模型名 -> 上游模型 + 端点。
+  # 注意 OpenCode Go 每个模型的接口格式是固定的：
+  #   chat/completions —— GLM / Kimi / DeepSeek / MiMo / Hy3
+  #   messages         —— MiniMax / Qwen
+  #   responses        —— Grok 4.5 / GPT 5.6 Luna
+  overrides:
+    "deepseek-v4-flash": { id: "deepseek-v4-flash", endpoint: "chat/completions" }
+    "qwen3.7-max":       { id: "qwen3.7-max",       endpoint: "messages" }
+    "gpt-5.6-luna":      { id: "gpt-5.6-luna",      endpoint: "responses" }
+    "grok-4.5":          { id: "grok-4.5",          endpoint: "responses" }
