@@ -10,8 +10,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/lewang/deepseek-v4-flash-vision/internal/config"
-	"github.com/lewang/deepseek-v4-flash-vision/internal/convert"
+	"github.com/lewangdev/deepseek-v4-flash-vision/internal/config"
+	"github.com/lewangdev/deepseek-v4-flash-vision/internal/convert"
 )
 
 // Client talks to one OpenCode Go base URL.

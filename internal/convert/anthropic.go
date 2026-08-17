@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/lewang/deepseek-v4-flash-vision/internal/ir"
+	"github.com/lewangdev/deepseek-v4-flash-vision/internal/ir"
 )
 
 // Anthropic Messages <-> IR.

@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lewang/deepseek-v4-flash-vision/internal/config"
-	"github.com/lewang/deepseek-v4-flash-vision/internal/router"
-	"github.com/lewang/deepseek-v4-flash-vision/internal/upstream"
+	"github.com/lewangdev/deepseek-v4-flash-vision/internal/config"
+	"github.com/lewangdev/deepseek-v4-flash-vision/internal/router"
+	"github.com/lewangdev/deepseek-v4-flash-vision/internal/upstream"
 )
 
 // family identifies one of the three wire formats.

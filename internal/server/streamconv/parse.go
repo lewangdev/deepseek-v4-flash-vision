@@ -5,7 +5,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/lewang/deepseek-v4-flash-vision/internal/ir"
+	"github.com/lewangdev/deepseek-v4-flash-vision/internal/ir"
 )
 
 // All three parsers emit live text deltas through fn, and exactly one final

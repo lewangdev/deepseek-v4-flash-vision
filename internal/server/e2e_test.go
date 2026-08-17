@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/lewang/deepseek-v4-flash-vision/internal/config"
+	"github.com/lewangdev/deepseek-v4-flash-vision/internal/config"
 )
 
 // newTestGateway wires a config against a fake upstream, returning the gateway

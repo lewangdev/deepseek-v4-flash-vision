@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lewang/deepseek-v4-flash-vision/internal/ir"
+	"github.com/lewangdev/deepseek-v4-flash-vision/internal/ir"
 )
 
 // This file holds helpers shared by the three wire-format converters.

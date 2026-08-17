@@ -15,8 +15,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/lewang/deepseek-v4-flash-vision/internal/config"
-	"github.com/lewang/deepseek-v4-flash-vision/internal/server"
+	"github.com/lewangdev/deepseek-v4-flash-vision/internal/config"
+	"github.com/lewangdev/deepseek-v4-flash-vision/internal/server"
 )
 
 func main() {

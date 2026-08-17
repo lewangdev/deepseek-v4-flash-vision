@@ -6,10 +6,10 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/lewang/deepseek-v4-flash-vision/internal/convert"
-	"github.com/lewang/deepseek-v4-flash-vision/internal/ir"
-	"github.com/lewang/deepseek-v4-flash-vision/internal/router"
-	"github.com/lewang/deepseek-v4-flash-vision/internal/server/streamconv"
+	"github.com/lewangdev/deepseek-v4-flash-vision/internal/convert"
+	"github.com/lewangdev/deepseek-v4-flash-vision/internal/ir"
+	"github.com/lewangdev/deepseek-v4-flash-vision/internal/router"
+	"github.com/lewangdev/deepseek-v4-flash-vision/internal/server/streamconv"
 )
 
 const maxRequestBody = 64 << 20 // images raise the ceiling

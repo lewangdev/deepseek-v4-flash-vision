@@ -34,7 +34,7 @@ DeepSeek V4 Flash 是 OpenCode Go 订阅里最便宜的文本模型，但它不�
 ## 安装 / 构建
 
 ```sh
-git clone https://github.com/lewang/deepseek-v4-flash-vision.git
+git clone https://github.com/lewangdev/deepseek-v4-flash-vision.git
 cd deepseek-v4-flash-vision
 make build          # 等价于 CGO_ENABLED=0 go build -o deepseek-v4-flash-vision .
 ```
@@ -140,4 +140,4 @@ curl http://127.0.0.1:8787/v1/models
 
 ## License
 
-MIT。模块路径 `github.com/lewang/deepseek-v4-flash-vision`（fork 时可全局替换为自己的路径）。
+MIT。模块路径 `github.com/lewangdev/deepseek-v4-flash-vision`（fork 时可全局替换为自己的路径）。

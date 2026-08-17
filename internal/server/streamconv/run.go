@@ -4,7 +4,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/lewang/deepseek-v4-flash-vision/internal/ir"
+	"github.com/lewangdev/deepseek-v4-flash-vision/internal/ir"
 )
 
 // Run bridges a cross-family stream: it parses an upstream SSE stream written

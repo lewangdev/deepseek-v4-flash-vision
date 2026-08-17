@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/lewang/deepseek-v4-flash-vision/internal/config"
-	"github.com/lewang/deepseek-v4-flash-vision/internal/ir"
-	"github.com/lewang/deepseek-v4-flash-vision/internal/router"
+	"github.com/lewangdev/deepseek-v4-flash-vision/internal/config"
+	"github.com/lewangdev/deepseek-v4-flash-vision/internal/ir"
+	"github.com/lewangdev/deepseek-v4-flash-vision/internal/router"
 )
 
 func textReq() *ir.Request {

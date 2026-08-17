@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/lewang/deepseek-v4-flash-vision/internal/ir"
+	"github.com/lewangdev/deepseek-v4-flash-vision/internal/ir"
 )
 
 func collect(t *testing.T, fn func(func(Delta)) error) (text string, last Delta) {

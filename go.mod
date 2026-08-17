@@ -1,4 +1,4 @@
-module github.com/lewang/deepseek-v4-flash-vision
+module github.com/lewangdev/deepseek-v4-flash-vision
 
 go 1.21
 

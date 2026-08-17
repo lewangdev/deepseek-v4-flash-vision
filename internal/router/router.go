@@ -5,8 +5,8 @@
 package router
 
 import (
-	"github.com/lewang/deepseek-v4-flash-vision/internal/config"
-	"github.com/lewang/deepseek-v4-flash-vision/internal/ir"
+	"github.com/lewangdev/deepseek-v4-flash-vision/internal/config"
+	"github.com/lewangdev/deepseek-v4-flash-vision/internal/ir"
 )
 
 // Result is the routing decision: the upstream model id and endpoint format.

@@ -12,7 +12,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/lewang/deepseek-v4-flash-vision/internal/ir"
+	"github.com/lewangdev/deepseek-v4-flash-vision/internal/ir"
 )
 
 // sse reads Server-Sent Events from an io.Reader. `data:` payloads are joined
